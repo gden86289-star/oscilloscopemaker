@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Synth Studio · Design Mode</title>
+    <style>
+        :root {
+            --neon-primary: #39ff14;
+            --neon-glow: rgba(57, 255, 20, 0.6);
+            --dark-bg: #0a0a0c;
+            --panel-bg: #1a1a1f;
+            --grid-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                var(--grid-color);
+            background-size: cover;
+            color: var(--neon-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            transition: background 1.2s, color 0.8s;
+        }
+
+        h1 {
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            text-shadow: 0 0 15px var(--neon-primary);
+            margin: 15px 0;
+        }
+
+        .synth-container {
+            background: var(--panel-bg);
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 0 40px var(--neon-glow), inset 0 0 15px var(--neon-glow);
+            border: 1px solid rgba(255,255,255,0.08);
+            width: 100%;
+            max-width: 720px;
+            transition: all 0.6s;
+        }
+
+        canvas {
+            background: #000;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            box-shadow: inset 0 0 30px var(--neon-glow);
+            width: 100%;
+            height: 220px;
+            display: block;
+            margin-bottom: 25px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="range"], input[type="color"] {
+            appearance: none;
+            background: #222;
+            height: 7px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--neon-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 12px var(--neon-primary);
+        }
+
+        select, button, input[type="color"] {
+            background: #18181c;
+            color: var(--neon-primary);
+            border: 1px solid var(--neon-primary);
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover, select:hover {
+            background: var(--neon-primary);
+            color: black;
+            box-shadow: 0 0 25px var(--neon-glow);
+        }
+
+        .active {
+            background: #ff2d55 !important;
+            color: white !important;
+            border-color: #ff2d55 !important;
+            box-shadow: 0 0 25px #ff2d55 !important;
+        }
+
+        .value-display {
+            font-family: monospace;
+            font-size: 1.15rem;
+            color: white;
+        }
+
+        .osc-section {
+            border: 1px dashed rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.25);
+        }
+
+        .design-panel {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            border: 1px solid rgba(57,255,20,0.2);
+        }
+
+        .design-panel .control-group {
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Neon Synth · Design Lab</h1>
+
+    <div class="synth-container">
+        <canvas id="scope"></canvas>
+
+        <div class="controls">
+
+            <!-- Osc 1 -->
+            <div class="osc-section">
+                <strong>Oscillator 1</strong>
+                <div class="control-group">
+                    <label>Waveform</label>
+                    <select id="waveType1">
+                        <option value="sine">Sine</option>
+                        <option value="square">Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                        <option value="triangle">Triangle</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Freq 1: <span class="value-display" id="freqValue1">440 Hz</span></label>
+                    <input type="range" id="freq1" min="40" max="1800" value="440">
+                </div>
+            </div>
+
+            <!-- Osc 2 -->
+            <div class="osc-section">
+                <strong>Oscillator 2</strong>
+                <div class="control-group">
+                    <label>Waveform</label>
+                    <select id="waveType2">
+                        <option value="sine">Sine</option>
+                        <option value="square" selected>Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                        <option value="triangle">Triangle</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Freq 2: <span class="value-display" id="freqValue2">880 Hz</span></label>
+                    <input type="range" id="freq2" min="40" max="2200" value="880">
+                </div>
+            </div>
+
+            <!-- Global -->
+            <div class="control-group">
+                <label>Master Power</label>
+                <button id="playBtn">START AUDIO</button>
+            </div>
+
+            <div class="control-group">
+                <label>Filter Cutoff: <span class="value-display" id="filterValue">2200 Hz</span></label>
+                <input type="range" id="filter" min="50" max="9000" value="2200">
+            </div>
+
+            <div class="control-group">
+                <label>Master Volume</label>
+                <input type="range" id="volume" min="0" max="1" step="0.01" value="0.65">
+            </div>
+        </div>
+
+        <!-- ╔════════════════════════════════════╗ -->
+        <!-- ║          DESIGN CUSTOMIZATION      ║ -->
+        <!-- ╚════════════════════════════════════╝ -->
+        <div class="design-panel">
+            <h3 style="margin:0 0 18px 0; text-align:center;">DESIGN YOUR VIBE</h3>
+
+            <div class="control-group">
+                <label>Neon Color</label>
+                <input type="color" id="neonColor" value="#39ff14">
+            </div>
+
+            <div class="control-group">
+                <label>Background Style</label>
+                <select id="bgStyle">
+                    <option value="dark">Pure Dark</option>
+                    <option value="grid">Cyber Grid</option>
+                    <option value="sunset">Synth Sunset</option>
+                    <option value="pinkgrid">Pink Glitch Grid</option>
+                    <option value="retro">Retro Lab</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Oscilloscope Glow</label>
+                <input type="range" id="scopeGlow" min="5" max="40" value="15">
+            </div>
+
+            <div style="display:flex; gap:12px; justify-content:center; margin-top:15px;">
+                <button id="saveDesign">Save Design</button>
+                <button id="loadDesign">Load Saved</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ────────────────────────────────────────────────
+// AUDIO + OSCILLOSCOPE (same as before)
+// ────────────────────────────────────────────────
+const canvas = document.getElementById("scope");
+const ctx = canvas.getContext("2d");
+
+let audioCtx, osc1, osc2, analyser, gainNode, filterNode;
+let isPlaying = false;
+
+function initAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    gainNode = audioCtx.createGain();
+    filterNode = audioCtx.createBiquadFilter();
+
+    analyser.fftSize = 1024;
+    filterNode.type = 'lowpass';
+
+    gainNode.gain.value = document.getElementById("volume").value;
+    filterNode.frequency.value = document.getElementById("filter").value;
+}
+
+function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteTimeDomainData(dataArray);
+
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const glowIntensity = document.getElementById("scopeGlow").value;
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--neon-primary');
+    ctx.shadowBlur = glowIntensity;
+    ctx.shadowColor = ctx.strokeStyle;
+
+    ctx.beginPath();
+    let sliceWidth = canvas.width / bufferLength;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+        let v = dataArray[i] / 128.0;
+        let y = v * canvas.height / 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        x += sliceWidth;
+    }
+    ctx.stroke();
+}
+
+draw();
+
+// ────────────────────────────────────────────────
+// CONTROLS
+// ────────────────────────────────────────────────
+const playBtn   = document.getElementById("playBtn");
+const freq1     = document.getElementById("freq1");
+const freq2     = document.getElementById("freq2");
+const filterSl  = document.getElementById("filter");
+const volSl     = document.getElementById("volume");
+const wave1     = document.getElementById("waveType1");
+const wave2     = document.getElementById("waveType2");
+
+playBtn.onclick = function() {
+    if (!audioCtx) initAudio();
+    if (!isPlaying) {
+        osc1 = audioCtx.createOscillator();
+        osc2 = audioCtx.createOscillator();
+
+        osc1.type = wave1.value; osc2.type = wave2.value;
+        osc1.frequency.value = freq1.value; osc2.frequency.value = freq2.value;
+
+        const osc1Gain = audioCtx.createGain(); osc1Gain.gain.value = 0.5;
+        const osc2Gain = audioCtx.createGain(); osc2Gain.gain.value = 0.5;
+
+        osc1.connect(osc1Gain).connect(filterNode);
+        osc2.connect(osc2Gain).connect(filterNode);
+
+        filterNode.connect(gainNode);
+        gainNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        osc1.start(); osc2.start();
+
+        playBtn.textContent = "STOP AUDIO";
+        playBtn.classList.add("active");
+        isPlaying = true;
+    } else {
+        osc1?.stop(); osc2?.stop();
+        playBtn.textContent = "START AUDIO";
+        playBtn.classList.remove("active");
+        isPlaying = false;
+    }
+};
+
+freq1.oninput = () => { document.getElementById("freqValue1").textContent = freq1.value + " Hz"; if(osc1) osc1.frequency.setTargetAtTime(freq1.value, audioCtx.currentTime, 0.04); };
+freq2.oninput = () => { document.getElementById("freqValue2").textContent = freq2.value + " Hz"; if(osc2) osc2.frequency.setTargetAtTime(freq2.value, audioCtx.currentTime, 0.04); };
+filterSl.oninput = () => { document.getElementById("filterValue").textContent = filterSl.value + " Hz"; if(filterNode) filterNode.frequency.setTargetAtTime(filterSl.value, audioCtx.currentTime, 0.04); };
+volSl.oninput = () => { if(gainNode) gainNode.gain.setTargetAtTime(volSl.value, audioCtx.currentTime, 0.04); };
+wave1.onchange = () => { if(osc1) osc1.type = wave1.value; };
+wave2.onchange = () => { if(osc2) osc2.type = wave2.value; };
+
+// ────────────────────────────────────────────────
+// DESIGN SYSTEM
+// ────────────────────────────────────────────────
+const root = document.documentElement;
+const neonColorPicker = document.getElementById("neonColor");
+const bgStyleSelect = document.getElementById("bgStyle");
+const scopeGlow = document.getElementById("scopeGlow");
+
+const backgrounds = {
+    dark:       { bg: '#0a0a0c', grid: 'transparent' },
+    grid:       { bg: 'url("https://images.stockcake.com/public/f/5/6/f561da91-6c10-4ca3-9dbc-e6d3fa92969c_large/synthwave-grid-sunset-stockcake.jpg")', grid: 'transparent' },
+    sunset:     { bg: 'url("https://thumbs.dreamstime.com/b/cyberpunk-grid-neon-lights-virtual-landscape-futuristic-digital-glowing-synthwave-aesthetic-perfect-backgrounds-353448896.jpg")', grid: 'transparent' },
+    pinkgrid:   { bg: 'url("https://thumbs.dreamstime.com/b/synthwave-neon-background-bright-retro-future-pink-glowing-glitch-perspective-grid-starry-sky-futuristic-party-flyer-cover-banner-170347352.jpg")', grid: 'transparent' },
+    retro:      { bg: '#050505', grid: 'linear-gradient(rgba(255,80,0,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,80,0,0.07) 1px, transparent 1px)' }
+};
+
+function applyDesign(color, bgKey, glow) {
+    root.style.setProperty('--neon-primary', color);
+    root.style.setProperty('--neon-glow', color.replace(')', ', 0.6)').replace('rgb','rgba'));
+    root.style.setProperty('--dark-bg', backgrounds[bgKey]?.bg || '#0a0a0c');
+    root.style.setProperty('--grid-color', backgrounds[bgKey]?.grid || 'transparent');
+    document.body.style.backgroundSize = bgKey.includes('grid') ? '40px 40px' : 'cover';
+    document.body.style.backgroundPosition = 'center';
+}
+
+neonColorPicker.oninput = () => applyDesign(neonColorPicker.value, bgStyleSelect.value, scopeGlow.value);
+bgStyleSelect.onchange = () => applyDesign(neonColorPicker.value, bgStyleSelect.value, scopeGlow.value);
+scopeGlow.oninput = () => {
+    canvas.style.boxShadow = `inset 0 0 ${scopeGlow.value*1.5}px var(--neon-glow)`;
+};
+
+// Save / Load
+document.getElementById("saveDesign").onclick = () => {
+    const design = {
+        color: neonColorPicker.value,
+        bg: bgStyleSelect.value,
+        glow: scopeGlow.value
+    };
+    localStorage.setItem('neonSynthDesign', JSON.stringify(design));
+    alert("Design saved! ✓");
+};
+
+document.getElementById("loadDesign").onclick = () => {
+    const saved = localStorage.getItem('neonSynthDesign');
+    if (saved) {
+        const design = JSON.parse(saved);
+        neonColorPicker.value = design.color;
+        bgStyleSelect.value = design.bg;
+        scopeGlow.value = design.glow;
+        applyDesign(design.color, design.bg, design.glow);
+        alert("Design loaded! ✨");
+    } else {
+        alert("No saved design found.");
+    }
+};
+
+// Initial load if exists
+if (localStorage.getItem('neonSynthDesign')) {
+    document.getElementById("loadDesign").click();
+}
+</script>
+</body>
+</html>
